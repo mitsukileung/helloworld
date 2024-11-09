@@ -619,9 +619,11 @@ o:depends({type = "v2ray", v2ray_protocol = "socks"})
 -- 传输协议
 o = s:option(ListValue, "transport", translate("Transport"))
 o:value("tcp", "TCP")
+o:value("raw", "RAW")
 o:value("kcp", "mKCP")
 o:value("ws", "WebSocket")
 o:value("httpupgrade", "HTTPUpgrade")
+o:value("splithttp", "SplitHTTP")
 o:value("h2", "HTTP/2")
 o:value("quic", "QUIC")
 o:value("grpc", "gRPC")
@@ -641,14 +643,24 @@ o:value("none", translate("None"))
 o:value("http", "HTTP")
 o.rmempty = true
 
+-- [[ RAW部分 ]]--
+-- RAW伪装
+o = s:option(ListValue, "raw_guise", translate("Camouflage Type"))
+o:depends("transport", "raw")
+o:value("none", translate("None"))
+o:value("http", "HTTP")
+o.rmempty = true
+
 -- HTTP域名
 o = s:option(Value, "http_host", translate("HTTP Host"))
 o:depends("tcp_guise", "http")
+o:depends("raw_guise", "http")
 o.rmempty = true
 
 -- HTTP路径
 o = s:option(Value, "http_path", translate("HTTP Path"))
 o:depends("tcp_guise", "http")
+o:depends("raw_guise", "http")
 o.rmempty = true
 
 -- [[ WS部分 ]]--
@@ -688,6 +700,18 @@ o.rmempty = true
 -- httpupgrade路径
 o = s:option(Value, "httpupgrade_path", translate("Httpupgrade Path"))
 o:depends("transport", "httpupgrade")
+o.rmempty = true
+
+-- [[ splithttp部分 ]]--
+
+-- splithttp域名
+o = s:option(Value, "splithttp_host", translate("Splithttp Host"))
+o:depends({transport = "splithttp", tls = false})
+o.rmempty = true
+
+-- splithttp路径
+o = s:option(Value, "splithttp_path", translate("Splithttp Path"))
+o:depends("transport", "splithttp")
 o.rmempty = true
 
 -- [[ H2部分 ]]--
@@ -915,7 +939,9 @@ if is_finded("xray") then
 	end
 	o.rmempty = true
 	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "tcp", tls = true})
+	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "raw", tls = true})
 	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "tcp", reality = true})
+	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "raw", reality = true})
 
 	-- [[ uTLS ]]--
 	o = s:option(Value, "fingerprint", translate("Finger Print"))
@@ -938,6 +964,7 @@ end
 o = s:option(Value, "tls_host", translate("TLS Host"))
 o.datatype = "hostname"
 o:depends("tls", true)
+o:depends("xtls", true)
 o:depends("reality", true)
 o.rmempty = true
 
